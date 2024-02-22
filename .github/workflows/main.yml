@@ -1,41 +1,37 @@
-name: 🚀 Deploy on push main
+name: Deploy to cPanel
 
-on: 
+on:
   push:
-    branches:    
-      - main 
+    branches:
+      - main
 
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  deploy:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        node-version: [16.x]
-    
+        node-version: [14.x, 16.x, 18.x]
+
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v2
+      - name: Checkout Code 🚚
+        uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@master
-      with:
-        node-version: ${{ matrix.node-version }}
-    
+      - name: Install Dependencies 📦
+        run: npm install
 
-    - name: 🔨 Build Project 
-      run: |
-        npm install
-        npm run build
-    
-    - name: List output files
-      run: find dist/ -print
+      - name: Build React App / Vue App (depending on user app) 🏗️
+        run: npm run build
 
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@4.3.3
-      with:
-        server: ${{ secrets.SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: dist/
+      - name: Upload to cPanel 📂
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /
+          exclude: |
+            **/.git**
+            **/.git*/**
+            **/node_modules/**
+            **/.**
